@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
+    <!--updated 3.41pm-->
     <!-- Back Button -->
     <ImageView
         android:id="@+id/backButton"
@@ -121,15 +122,14 @@
         android:id="@+id/password"
         android:layout_width="0dp"
         android:layout_height="40dp"
-        android:hint="Password"
         android:background="@color/fouth"
+        android:hint="Password"
         android:textColor="@color/black"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/togglePasswordVisibility"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/passwordLabel"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@id/passwordLabel" />
 
+    <!-- Toggle Password Visibility -->
     <ImageView
         android:id="@+id/togglePasswordVisibility"
         android:layout_width="wrap_content"
@@ -137,12 +137,10 @@
         android:src="@drawable/baseline_visibility_off_24"
         android:contentDescription="Toggle Password Visibility"
         android:padding="8dp"
+        android:background="@color/fouth"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/passwordLabel"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintVertical_bias="0.0" />
-    <!-- Confirm Password Label -->
-
+        app:layout_constraintStart_toEndOf="@id/password" />
 
     <!-- Register Button -->
     <Button
@@ -155,7 +153,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-       app:layout_constraintTop_toBottomOf="@id/password" />
+        app:layout_constraintTop_toBottomOf="@id/password" />
 
     <!-- Already have an account Text -->
     <TextView
