@@ -6,6 +6,7 @@
     android:padding="16dp"
     tools:context=".EditProfileActivity">
 
+    <!--new updated-->
     <ImageView
         android:id="@+id/back_button"
         android:layout_width="24dp"
@@ -27,7 +28,7 @@
         android:layout_height="156dp"
         android:layout_alignParentStart="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginStart="113dp"
+        android:layout_marginStart="100dp"
         android:layout_marginTop="54dp"
         android:src="@drawable/unitalk" />
 

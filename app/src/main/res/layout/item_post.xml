@@ -36,7 +36,7 @@
         android:layout_height="200dp"
         android:layout_marginTop="8dp"
         android:scaleType="centerCrop"
-        android:visibility="visible" />
+        android:visibility="gone" />
 
     <!-- Post Content -->
     <TextView
@@ -101,7 +101,7 @@
             android:contentDescription="Contact"
             android:src="@drawable/icon_contact" />
     </LinearLayout>
-
+    <!--comment-->
     <!-- Comment Section -->
     <LinearLayout
         android:id="@+id/comment_section"

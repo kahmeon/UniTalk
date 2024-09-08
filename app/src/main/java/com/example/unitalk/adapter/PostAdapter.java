@@ -34,9 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
-
 
     private List<Post> postList;
     private Context context;
@@ -53,8 +51,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         return new ViewHolder(view);
     }
 
-
-
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Post post = postList.get(position);
@@ -63,17 +59,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         holder.commentCount.setText(String.valueOf(post.getComments().size()));
         holder.likeCount.setText(String.valueOf(post.getLikeCount()));
 
-        // Load the post image using Glide
-        Glide.with(holder.itemView.getContext())
-                .load(post.getImageUrl())
-                .into(holder.imageView);
+        // Load the post image using Glide, hide the ImageView if no image
+        if (post.getImageUrl() == null || post.getImageUrl().isEmpty()) {
+            holder.imageView.setVisibility(View.GONE); // No image, hide ImageView
+        } else {
+            holder.imageView.setVisibility(View.VISIBLE); // Show ImageView
+            Glide.with(holder.itemView.getContext())
+                    .load(post.getImageUrl())
+                    .into(holder.imageView);
+        }
 
         // Check if the post is liked by the current user
-        holder.isLiked = isPostLikedByUser(post);
-        updateLikeIcon(holder, post);
+        holder.isLiked = isPostLikedByCurrentUser(post);
+        updateLikeIcon(holder);
 
+        // Open profile activity when username is clicked
         holder.username.setOnClickListener(v -> {
-            String userId = post.getUserId(); // Check this value
+            String userId = post.getUserId();
             Intent intent = new Intent(context, ProfileActivity.class);
             intent.putExtra("userId", userId);
             context.startActivity(intent);
@@ -82,7 +84,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         // Like button click listener
         holder.likeIcon.setOnClickListener(v -> {
             holder.isLiked = !holder.isLiked;
-            toggleLike(holder.isLiked, post, holder); // Pass the correct parameters
+            toggleLike(holder.isLiked, post, holder);
         });
 
         // Contact button listener
@@ -92,7 +94,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             context.startActivity(intent);
         });
 
-        // Comment adapter setup
+        // Set up the comments section
         holder.commentAdapter = new CommentAdapter(new ArrayList<>());
         holder.commentsRecyclerView.setLayoutManager(new LinearLayoutManager(context));
         holder.commentsRecyclerView.setAdapter(holder.commentAdapter);
@@ -110,8 +112,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         });
     }
 
-
-
     private void toggleLike(boolean isLiked, Post post, ViewHolder holder) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String documentId = post.getId();
@@ -123,7 +123,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
 
         if (isLiked) {
-            // Increase the like count in Firestore and update the UI
             db.collection("posts")
                     .document(documentId)
                     .update("likeCount", FieldValue.increment(1))
@@ -136,7 +135,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                         Toast.makeText(context, "Failed to update like count: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
         } else {
-            // Decrease the like count in Firestore and update the UI
             db.collection("posts")
                     .document(documentId)
                     .update("likeCount", FieldValue.increment(-1))
@@ -151,41 +149,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    private void updateLikeCount(ViewHolder holder, Post post, boolean isLiked) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String documentId = post.getId();
-
-        if (documentId == null || documentId.isEmpty()) {
-            Log.e("UpdateLikeCount", "Invalid document ID.");
-            Toast.makeText(context, "Invalid post reference.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (isLiked) {
-            db.collection("posts")
-                    .document(documentId)
-                    .update("likeCount", post.getLikeCount() + 1)
-                    .addOnSuccessListener(aVoid -> {
-                        holder.likeCount.setText(String.valueOf(post.getLikeCount() + 1));
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(context, "Failed to update like count: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        } else {
-            db.collection("posts")
-                    .document(documentId)
-                    .update("likeCount", post.getLikeCount() - 1)
-                    .addOnSuccessListener(aVoid -> {
-                        holder.likeCount.setText(String.valueOf(post.getLikeCount() - 1));
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(context, "Failed to update like count: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        }
-    }
-
     private void loadComments(ViewHolder holder, Post post) {
-        String documentId = post.getId(); // Get the document ID from the Post object
+        String documentId = post.getId();
 
         if (documentId == null || documentId.isEmpty()) {
             Log.e("LoadComments", "Invalid document ID.");
@@ -206,7 +171,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                         }
 
                         List<String> comments = new ArrayList<>();
-                        if (value != null && !value.isEmpty()) {
+                        if (value != null) {
                             for (QueryDocumentSnapshot document : value) {
                                 String commentText = document.getString("text");
                                 if (commentText != null) {
@@ -248,14 +213,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public View usernameTextView;
         TextView description, commentCount, username, likeCount;
         ImageView imageView, contactButton, likeIcon;
         EditText commentInput;
         ImageButton sendCommentButton;
         RecyclerView commentsRecyclerView;
         CommentAdapter commentAdapter;
-        boolean isLiked; // Add this field
+        boolean isLiked;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -272,34 +236,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-
     public void updateItems(List<Post> items) {
         this.postList.clear();
         this.postList.addAll(items);
         notifyDataSetChanged();
     }
 
-    private boolean isPostLikedByUser(Post post) {
+    private boolean isPostLikedByCurrentUser(Post post) {
         // Implement logic to check if the current user has liked the post
-        // This can be done by checking a list of liked posts or a field in Firestore
-        return false; // Placeholder
+        // This can be done by checking a list of liked posts or querying Firestore
+        return false; // Placeholder logic
     }
 
-    private void updateLikeIcon(ViewHolder holder, Post post) {
-        // Here, you should determine if the post is liked or not
-        // This example assumes a method `isPostLikedByCurrentUser(post)` which returns a boolean
-        boolean isLiked = isPostLikedByCurrentUser(post);
-        if (isLiked) {
+    private void updateLikeIcon(ViewHolder holder) {
+        if (holder.isLiked) {
             holder.likeIcon.setImageResource(R.drawable.ic_like_red);
         } else {
             holder.likeIcon.setImageResource(R.drawable.ic_like);
         }
     }
-    private boolean isPostLikedByCurrentUser(Post post) {
-        // Implement the logic to check if the current user has liked the post
-        // This may involve checking a list of liked posts or querying Firestore
-        return false; // Placeholder value
-    }
-
-
 }
