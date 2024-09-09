@@ -28,32 +28,19 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="20dp"
             android:src="@drawable/posthomepage"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
             android:scaleType="centerInside"/>
 
         <!-- Post Title Label -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Title:"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp"/>
 
         <!-- Post Title -->
-        <EditText
-            android:id="@+id/postTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Title"
-            android:inputType="text"
-            android:background="@color/fouth"/>
 
         <!-- Post Description Label -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Description:"
+            android:text="Write a post:"
             android:textSize="16sp"
             android:layout_marginTop="16dp"/>
 
@@ -62,7 +49,7 @@
             android:id="@+id/postDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Description"
+            android:hint="Write a post"
             android:inputType="textMultiLine"
             android:minLines="3"
             android:background="@color/fouth"/>

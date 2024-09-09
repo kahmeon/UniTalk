@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#DBF1EF"
+    android:background="#E4E6E6"
     tools:context=".MarketplaceActivity">
 
     <!-- Top Section: Username and Menu Button -->
@@ -47,53 +47,46 @@
     </LinearLayout>
 
     <!-- Post Button -->
-    <Button
-        android:id="@+id/postButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#48AAAD"
-        android:drawableLeft="@drawable/ic_add_post"
-        android:gravity="center_vertical"
-        android:onClick="openPostMarketplaceActivity"
-        android:padding="12dp"
+    <TextView
+        android:id="@+id/postTextView"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="center_vertical|start"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="15dp"
+        android:background="@drawable/rounded_edittext"
+        android:gravity="center_vertical|start"
+        android:padding="10dp"
         android:text="@string/sell_something"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textColor="#636161"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/top_menu"
         app:layout_constraintWidth_percent="0.7" />
+
+
 
     <!-- SwipeRefreshLayout for Refreshing Products -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/postButton"
+        app:layout_constraintTop_toBottomOf="@id/postTextView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- CardView for Background and Elevation -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/recyclerViewCard"
+        <!-- RecyclerView for Displaying Products in a Grid Layout -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="16dp"
-            android:background="#FFFFFF"
-            app:cardElevation="8dp"
-            app:cardCornerRadius="8dp">
+            android:scrollbars="vertical"
+            android:padding="8dp"
+            tools:listitem="@layout/item_product" />
 
-            <!-- RecyclerView for Displaying Products in a Grid Layout -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scrollbars="vertical"
-                android:padding="8dp"
-                tools:listitem="@layout/item_product" />
-
-        </androidx.cardview.widget.CardView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,7 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#dafafb"
+    android:background="@color/grey"
     android:padding="16dp">
 
     <!-- Top profile section -->
@@ -53,12 +53,16 @@
         android:textColorHint="#7A7777" />
 
     <!-- Post feed section -->
+    <!-- Post feed section with minimized margins and padding -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/post_input"
         android:layout_marginTop="5dp"
-        android:padding="8dp" />
+        android:layout_marginStart="0dp"
+    android:layout_marginEnd="0dp"
+    android:padding="0dp" />
+
 
 </RelativeLayout>

@@ -38,18 +38,20 @@ public class MarketplaceFragment extends Fragment {
     private TextView usernameTextView;
     private FirebaseAuth auth;
     private ImageView menuButton;
+    private TextView postTextView; // Change this line
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_marketplace, container, false);
-        Button postButton = view.findViewById(R.id.postButton);
-        postButton.setOnClickListener(new View.OnClickListener() {
+        postTextView = view.findViewById(R.id.postTextView); // Update this line
+        postTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openPostMarketplaceActivity(v); // This ensures the button triggers the method
+                openPostMarketplaceActivity(v); // Ensure the TextView triggers the method
             }
         });
+
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance();
 
@@ -79,8 +81,6 @@ public class MarketplaceFragment extends Fragment {
 
         return view;
     }
-
-
 
     private void setupMenuButton(View view) {
         menuButton.setOnClickListener(v -> showPopupMenu());
@@ -180,4 +180,5 @@ public class MarketplaceFragment extends Fragment {
     }
 
 }
+
 

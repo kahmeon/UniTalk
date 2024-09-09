@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:gravity="center"
     android:padding="16dp"
-    android:background ="#dafafb">
+    android:background ="@color/fouth">
 
     <!-- Icon -->
     <ImageView

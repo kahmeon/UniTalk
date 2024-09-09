@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#dafafb"
+    android:background="@color/grey"
     android:padding="16dp">
 
     <!-- Back Button -->
@@ -45,7 +45,7 @@
             android:id="@+id/sellerUsername"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/fouth"
+            android:background="@color/grey"
             android:text="Seller Username"
             android:textColor="#201D1D"
             android:textSize="18sp" />
@@ -64,7 +64,7 @@
             android:id="@+id/productImage"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:background="@color/fouth"
+            android:background="@color/grey"
             android:scaleType="centerCrop" />
 
         <!-- Product Name and Price -->
@@ -87,7 +87,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@color/fouth"
+                android:background="@color/grey"
                 android:text="Product Name"
                 android:textColor="#201D1D" />
 
@@ -95,7 +95,7 @@
                 android:id="@+id/productPrice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="#97CBCC"
+                android:background="@color/grey"
                 android:text="RM 50"
                 android:textColor="#201D1D" />
         </LinearLayout>
@@ -114,7 +114,7 @@
             android:id="@+id/productDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/fouth"
+            android:background="@color/grey"
             android:paddingTop="8dp"
             android:text="Product Description"
             android:textColor="#201D1D" />

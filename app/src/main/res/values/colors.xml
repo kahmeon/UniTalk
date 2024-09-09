@@ -10,6 +10,6 @@
     <color name="light_gray">#C3C3C3</color>
     <color name="chat_color_sender">#E51E1E</color>
     <color name="chat_color_receiver">#7CB342</color>
-    <color name="grey">#465051</color>
+    <color name="grey">#E4E6E6</color>
     <color name="colorAccent">#FF4081</color>
 </resources>

@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,7 +20,8 @@ import java.util.Calendar;
 
 public class EditProfileActivity extends AppCompatActivity {
 
-    private EditText usernameEditText, phoneNumberEditText, bioEditText, birthdayEditText, genderEditText;
+    private TextView usernameTextView;
+    private EditText phoneNumberEditText, bioEditText, birthdayEditText, genderEditText;
     private Button saveButton;
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
@@ -34,7 +36,7 @@ public class EditProfileActivity extends AppCompatActivity {
         mFirestore = FirebaseFirestore.getInstance();
 
         // Initialize views
-        usernameEditText = findViewById(R.id.usernameEditText);
+        usernameTextView = findViewById(R.id.usernameTextView);
         phoneNumberEditText = findViewById(R.id.phoneNumberEditText);
         bioEditText = findViewById(R.id.bioEditText);
         birthdayEditText = findViewById(R.id.birthdayEditText);
@@ -43,7 +45,6 @@ public class EditProfileActivity extends AppCompatActivity {
         View backButton = findViewById(R.id.back_button);
 
         backButton.setOnClickListener(v -> onBackPressed());
-
 
         // Initialize calendar for DatePicker
         calendar = Calendar.getInstance();
@@ -58,8 +59,6 @@ public class EditProfileActivity extends AppCompatActivity {
         saveButton.setOnClickListener(view -> saveProfile());
     }
 
-
-
     private void loadUserProfile() {
         String userId = mAuth.getCurrentUser().getUid();
         DocumentReference docRef = mFirestore.collection("users").document(userId);
@@ -71,9 +70,9 @@ public class EditProfileActivity extends AppCompatActivity {
                 String birthday = documentSnapshot.getString("birthday");
                 String gender = documentSnapshot.getString("gender");
 
-                // Set text to EditTexts only if the field is not empty
+                // Display username in TextView
                 if (!TextUtils.isEmpty(username)) {
-                    usernameEditText.setText(username);
+                    usernameTextView.setText(username);
                 }
                 if (!TextUtils.isEmpty(phoneNumber)) {
                     phoneNumberEditText.setText(phoneNumber);
@@ -108,7 +107,6 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void saveProfile() {
-        String username = usernameEditText.getText().toString().trim();
         String phoneNumber = phoneNumberEditText.getText().toString().trim();
         String bio = bioEditText.getText().toString().trim();
         String birthday = birthdayEditText.getText().toString().trim();
@@ -117,8 +115,8 @@ public class EditProfileActivity extends AppCompatActivity {
         String userId = mAuth.getCurrentUser().getUid();
         DocumentReference docRef = mFirestore.collection("users").document(userId);
 
-        // Update user profile data
-        docRef.update("username", username,
+        // Update user profile data without changing the username
+        docRef.update(
                         "phone_number", phoneNumber,
                         "bio", bio,
                         "birthday", birthday,
@@ -128,7 +126,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
                     // Send updated data back to ProfileActivity
                     Intent resultIntent = new Intent();
-                    resultIntent.putExtra("username", username);
                     resultIntent.putExtra("phone_number", phoneNumber);
                     resultIntent.putExtra("bio", bio);
                     resultIntent.putExtra("birthday", birthday);

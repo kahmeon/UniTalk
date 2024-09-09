@@ -74,6 +74,8 @@ public class ProfileActivity extends AppCompatActivity {
         fab.setOnClickListener(view -> selectImage());
 
         String userId = getIntent().getStringExtra("userId");
+        logoutButton.setOnClickListener(view -> handleLogout());
+
 
         if (userId != null) {
             loadUserProfile(userId); // Load profile of the user whose ID is passed
@@ -160,6 +162,20 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
         return (filledFields * 100) / fields.length;
+    }
+
+    private void handleLogout() {
+        // Sign out the current user
+        FirebaseAuth.getInstance().signOut();
+
+        // Clear any active listeners or resources if needed
+        // (If you have active Firestore listeners, remove them here)
+
+        // Navigate back to the SignInActivity
+        Intent signInIntent = new Intent(ProfileActivity.this, SignInActivity.class);
+        signInIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(signInIntent);
+        finish(); // Close the ProfileActivity to prevent users from navigating back to it
     }
 
     private void selectImage() {

@@ -2,11 +2,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#dafafb"
+    android:background="@color/white"
     android:padding="16dp"
     tools:context=".EditProfileActivity">
 
-    <!--new updated-->
+    <!-- Back Button -->
     <ImageView
         android:id="@+id/back_button"
         android:layout_width="24dp"
@@ -19,48 +19,43 @@
         android:clickable="true"
         android:focusable="true" />
 
-
-
-    <!-- Username Label -->
+    <!-- Logo ImageView -->
     <ImageView
         android:id="@+id/logoImageView"
         android:layout_width="158dp"
         android:layout_height="156dp"
-        android:layout_alignParentStart="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginStart="100dp"
         android:layout_marginTop="54dp"
         android:src="@drawable/unitalk" />
 
+    <!-- Username Label -->
     <TextView
         android:id="@+id/usernameLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
         android:layout_below="@id/logoImageView"
+        android:layout_marginTop="16dp"
         android:text="Username"
         android:textColor="#000000"
         android:textSize="16sp" />
 
-    <!-- Username EditText -->
-    <EditText
-        android:id="@+id/usernameEditText"
+    <!-- Username Display (non-editable) -->
+    <TextView
+        android:id="@+id/usernameTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/usernameLabel"
         android:layout_marginTop="4dp"
-        android:background="#B4ECF3"
-        android:hint="Enter your username"
-        android:inputType="textPersonName"
+        android:background="@color/fouth"
         android:textColor="#0E0B0B"
-        android:textColorHint="#9E9E9E" />
+        android:padding="12dp" />
 
     <!-- Phone Number Label -->
     <TextView
         android:id="@+id/phoneNumberLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/usernameEditText"
+        android:layout_below="@id/usernameTextView"
         android:layout_marginTop="16dp"
         android:text="Phone Number"
         android:textColor="#000000"
@@ -73,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/phoneNumberLabel"
         android:layout_marginTop="4dp"
-        android:background="#B4ECF3"
+        android:background="@color/fouth"
         android:hint="Enter your phone number"
         android:inputType="phone"
         android:textColor="#151010"
@@ -97,7 +92,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/bioLabel"
         android:layout_marginTop="4dp"
-        android:background="#B4ECF3"
+        android:background="@color/fouth"
         android:hint="Tell us about yourself"
         android:inputType="textMultiLine"
         android:lines="4"
@@ -124,7 +119,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/birthdayLabel"
         android:layout_marginTop="4dp"
-        android:background="#B4ECF3"
+        android:background="@color/fouth"
         android:clickable="true"
         android:focusable="false"
         android:hint="Enter your birthday"
@@ -150,7 +145,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/genderLabel"
         android:layout_marginTop="4dp"
-        android:background="#B4ECF3"
+        android:background="@color/fouth"
         android:hint="Enter your gender"
         android:inputType="textPersonName"
         android:textColor="#171010"

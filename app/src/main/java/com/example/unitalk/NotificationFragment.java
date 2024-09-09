@@ -2,6 +2,8 @@ package com.example.unitalk;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -26,22 +28,29 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NotificationFragment extends Fragment {
 
     private RecyclerView recyclerViewNotifications;
     private NotificationAdapter notificationAdapter;
     private List<NotificationModel> notificationList;
+    private ListenerRegistration notificationListener;
     private TextView textViewUsername, noNotificationsText;
     private ImageView userProfile, menuButton;
     private FirebaseFirestore db;
     private String currentUserId;
     private FirebaseAuth mAuth;
 
+    // Added Executor and Handler for background threading
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Nullable
     @Override
@@ -52,6 +61,14 @@ public class NotificationFragment extends Fragment {
         clearAllButton.setOnClickListener(v -> clearAllNotifications());
         mAuth = FirebaseAuth.getInstance();
 
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            currentUserId = currentUser.getUid();
+        } else {
+            currentUserId = ""; // Handle the case when the user is not authenticated
+            Toast.makeText(getContext(), "Please log in to continue.", Toast.LENGTH_SHORT).show();
+        }
+
         // Initialize Firestore and UI components
         db = FirebaseFirestore.getInstance();
         recyclerViewNotifications = view.findViewById(R.id.recycler_view_notifications);
@@ -59,7 +76,6 @@ public class NotificationFragment extends Fragment {
         menuButton = view.findViewById(R.id.menu_button);
         textViewUsername = view.findViewById(R.id.username);
         noNotificationsText = view.findViewById(R.id.no_notifications_text);
-
 
         setupMenuButton(menuButton);
 
@@ -76,7 +92,6 @@ public class NotificationFragment extends Fragment {
         userProfile.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Profile clicked", Toast.LENGTH_SHORT).show();
         });
-
 
         return view;
     }
@@ -95,28 +110,34 @@ public class NotificationFragment extends Fragment {
             currentUserId = user.getUid();
 
             // Fetch the username from Firestore using the UID
-            db.collection("users")
-                    .document(currentUserId)
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            String username = documentSnapshot.getString("username");
-                            if (username != null && !username.isEmpty()) {
-                                textViewUsername.setText(username);
-                            } else {
+            executor.execute(() -> { // Moving this to a background thread
+                db.collection("users")
+                        .document(currentUserId)
+                        .get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            handler.post(() -> { // Updating the UI on the main thread
+                                if (documentSnapshot.exists()) {
+                                    String username = documentSnapshot.getString("username");
+                                    if (username != null && !username.isEmpty()) {
+                                        textViewUsername.setText(username);
+                                    } else {
+                                        textViewUsername.setText("Unknown User");
+                                        Toast.makeText(getContext(), "Username not set. Update your profile.", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    textViewUsername.setText("Unknown User");
+                                    Toast.makeText(getContext(), "User document not found.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        })
+                        .addOnFailureListener(e -> {
+                            handler.post(() -> {
+                                Log.e("FirestoreError", "Error fetching username", e);
                                 textViewUsername.setText("Unknown User");
-                                Toast.makeText(getContext(), "Username not set. Update your profile.", Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            textViewUsername.setText("Unknown User");
-                            Toast.makeText(getContext(), "User document not found.", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("FirestoreError", "Error fetching username", e);
-                        textViewUsername.setText("Unknown User");
-                        Toast.makeText(getContext(), "Failed to fetch username.", Toast.LENGTH_SHORT).show();
-                    });
+                                Toast.makeText(getContext(), "Failed to fetch username.", Toast.LENGTH_SHORT).show();
+                            });
+                        });
+            });
         } else {
             textViewUsername.setText("No User Signed In");
             Toast.makeText(getContext(), "Please sign in to access this feature.", Toast.LENGTH_SHORT).show();
@@ -166,34 +187,53 @@ public class NotificationFragment extends Fragment {
 
         currentUserId = user.getUid();
 
-        // Real-time listener for notifications with improved error handling
-        db.collection("Notifications")
-                .whereEqualTo("receiverId", currentUserId)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        Log.e("NotificationFragment", "Error getting notifications: ", error);
-                        Toast.makeText(getContext(), "Failed to load notifications: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+        // Remove existing listener if it exists before adding a new one
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
 
-                    if (value != null && !value.isEmpty()) {
-                        notificationList.clear();
-                        toggleNoNotificationsMessage(false);
-                        for (DocumentChange docChange : value.getDocumentChanges()) {
-                            NotificationModel notification = docChange.getDocument().toObject(NotificationModel.class);
-                            notification.setDocumentId(docChange.getDocument().getId());
-                            if (notification != null) {
-                                // Fetch sender's username using senderId
-                                fetchSenderUsername(notification);
-                            } else {
-                                Log.e("NotificationFragment", "Error parsing notification document.");
+        // Add a Firestore listener and keep a reference to it
+        executor.execute(() -> {
+            notificationListener = db.collection("Notifications")
+                    .whereEqualTo("receiverId", currentUserId)
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .addSnapshotListener((value, error) -> {
+                        handler.post(() -> {
+                            if (error != null) {
+                                Log.e("NotificationFragment", "Error getting notifications: ", error);
+                                Toast.makeText(getContext(), "Failed to load notifications: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                return;
                             }
-                        }
-                    } else {
-                        toggleNoNotificationsMessage(true);
-                    }
-                });
+
+                            if (value != null && !value.isEmpty()) {
+                                notificationList.clear();
+                                toggleNoNotificationsMessage(false);
+                                for (DocumentChange docChange : value.getDocumentChanges()) {
+                                    NotificationModel notification = docChange.getDocument().toObject(NotificationModel.class);
+                                    notification.setDocumentId(docChange.getDocument().getId());
+                                    if (notification != null) {
+                                        // Fetch sender's username using senderId
+                                        fetchSenderUsername(notification);
+                                    } else {
+                                        Log.e("NotificationFragment", "Error parsing notification document.");
+                                    }
+                                }
+                            } else {
+                                toggleNoNotificationsMessage(true);
+                            }
+                        });
+                    });
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Remove Firestore listener when the view is destroyed
+        if (notificationListener != null) {
+            notificationListener.remove();
+            notificationListener = null;
+        }
     }
 
     // Fetch the sender's username using the senderId
@@ -202,26 +242,28 @@ public class NotificationFragment extends Fragment {
 
         if (senderId != null) {
             // Fetch username from Firestore
-            db.collection("users")
-                    .document(senderId)
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            String senderName = documentSnapshot.getString("username");
-                            notification.setSenderName(senderName != null ? senderName : "Unknown Sender");
-                        } else {
+            executor.execute(() -> {
+                db.collection("users")
+                        .document(senderId)
+                        .get()
+                        .addOnSuccessListener(documentSnapshot -> handler.post(() -> {
+                            if (documentSnapshot.exists()) {
+                                String senderName = documentSnapshot.getString("username");
+                                notification.setSenderName(senderName != null ? senderName : "Unknown Sender");
+                            } else {
+                                notification.setSenderName("Unknown Sender");
+                            }
+                            // Add the notification to the list after setting the sender name
+                            notificationList.add(notification);
+                            notificationAdapter.notifyDataSetChanged();
+                        }))
+                        .addOnFailureListener(e -> handler.post(() -> {
+                            Log.e("NotificationFragment", "Failed to fetch sender username: ", e);
                             notification.setSenderName("Unknown Sender");
-                        }
-                        // Add the notification to the list after setting the sender name
-                        notificationList.add(notification);
-                        notificationAdapter.notifyDataSetChanged();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("NotificationFragment", "Failed to fetch sender username: ", e);
-                        notification.setSenderName("Unknown Sender");
-                        notificationList.add(notification);
-                        notificationAdapter.notifyDataSetChanged();
-                    });
+                            notificationList.add(notification);
+                            notificationAdapter.notifyDataSetChanged();
+                        }));
+            });
         } else {
             // Handle cases where senderId is missing
             notification.setSenderName("Unknown Sender");
@@ -240,23 +282,24 @@ public class NotificationFragment extends Fragment {
             recyclerViewNotifications.setVisibility(View.VISIBLE);
         }
     }
+
     private void clearAllNotifications() {
-        db.collection("Notifications")
-                .whereEqualTo("receiverId", currentUserId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    for (DocumentSnapshot document : querySnapshot.getDocuments()) {
-                        document.getReference().delete();
-                    }
-                    notificationList.clear();
-                    notificationAdapter.notifyDataSetChanged();
-                    toggleNoNotificationsMessage(true);
-                    Toast.makeText(getContext(), "All notifications cleared", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Failed to clear notifications: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+        executor.execute(() -> {
+            db.collection("Notifications")
+                    .whereEqualTo("receiverId", currentUserId)
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> handler.post(() -> {
+                        for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                            document.getReference().delete();
+                        }
+                        notificationList.clear();
+                        notificationAdapter.notifyDataSetChanged();
+                        toggleNoNotificationsMessage(true);
+                        Toast.makeText(getContext(), "All notifications cleared", Toast.LENGTH_SHORT).show();
+                    }))
+                    .addOnFailureListener(e -> handler.post(() -> {
+                        Toast.makeText(getContext(), "Failed to clear notifications: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }));
+        });
     }
-
-
 }

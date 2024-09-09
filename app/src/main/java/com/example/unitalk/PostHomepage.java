@@ -49,7 +49,6 @@ public class PostHomepage extends AppCompatActivity {
         setContentView(R.layout.activity_post_homepage);
 
         // Initialize views
-        postTitleEditText = findViewById(R.id.postTitle);
         postDescriptionEditText = findViewById(R.id.postDescription);
         uploadPhotoButton = findViewById(R.id.uploadPhotoButton);
         submitPostButton = findViewById(R.id.submitPostButton);
