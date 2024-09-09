@@ -250,8 +250,7 @@ public class ChatActivity extends AppCompatActivity {
                 .orderBy("timestamp")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
-                        Log.e("ChatActivity", "Failed to load messages: ", e);
-                        Toast.makeText(ChatActivity.this, "Failed to load messages", Toast.LENGTH_SHORT).show();
+
                         return;
                     }
 
