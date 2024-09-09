@@ -49,6 +49,7 @@ public class PostHomepage extends AppCompatActivity {
         setContentView(R.layout.activity_post_homepage);
 
         // Initialize views
+
         postDescriptionEditText = findViewById(R.id.postDescription);
         uploadPhotoButton = findViewById(R.id.uploadPhotoButton);
         submitPostButton = findViewById(R.id.submitPostButton);
@@ -85,13 +86,10 @@ public class PostHomepage extends AppCompatActivity {
     }
 
     private void submitPost() {
-        String postTitle = postTitleEditText.getText().toString().trim();
+
         String postDescription = postDescriptionEditText.getText().toString().trim();
 
-        if (postTitle.isEmpty() || postDescription.isEmpty()) {
-            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-            return;
-        }
+
 
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) {
@@ -109,7 +107,7 @@ public class PostHomepage extends AppCompatActivity {
                         String username = userProfile != null ? userProfile.getUsername() : "Unknown";
 
                         Map<String, Object> post = new HashMap<>();
-                        post.put("title", postTitle);
+
                         post.put("description", postDescription);
                         post.put("username", username);
                         post.put("likeCount", 0); // Initialize like count
