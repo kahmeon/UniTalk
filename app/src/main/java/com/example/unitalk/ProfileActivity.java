@@ -35,7 +35,6 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView usernameTextView, emailTextView, phoneNumberTextView, bioTextView, genderTextView, birthdayTextView, profileCompletionTextView, profileViewsTextView, lastSeenTextView;
     private ImageView profileImageView;
     private Button editProfileButton, changePasswordButton, logoutButton;
-    private int requestCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,8 +73,6 @@ public class ProfileActivity extends AppCompatActivity {
         fab.setOnClickListener(view -> selectImage());
 
         String userId = getIntent().getStringExtra("userId");
-        logoutButton.setOnClickListener(view -> handleLogout());
-
 
         if (userId != null) {
             loadUserProfile(userId); // Load profile of the user whose ID is passed
@@ -97,13 +94,19 @@ public class ProfileActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Handle logout button click
-        logoutButton.setOnClickListener(view -> {
-            FirebaseAuth.getInstance().signOut();
-            // Redirect to login screen
-            startActivity(new Intent(ProfileActivity.this, SignInActivity.class));
-            finish();
-        });
+        logoutButton.setOnClickListener(view -> logout());
+    }
+
+    private void logout() {
+
+        // Sign out from Firebase Auth
+        FirebaseAuth.getInstance().signOut();
+
+        
+        Intent intent = new Intent(ProfileActivity.this, SignInActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void loadUserProfile(String userId) {
@@ -147,7 +150,6 @@ public class ProfileActivity extends AppCompatActivity {
                                     .load(R.drawable.person_icon) // Replace with your default image resource
                                     .into(profileImageView);
                         }
-
                     }
                 }).addOnFailureListener(e -> {
                     Toast.makeText(ProfileActivity.this, "Failed to load user profile", Toast.LENGTH_SHORT).show();
@@ -162,20 +164,6 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
         return (filledFields * 100) / fields.length;
-    }
-
-    private void handleLogout() {
-        // Sign out the current user
-        FirebaseAuth.getInstance().signOut();
-
-        // Clear any active listeners or resources if needed
-        // (If you have active Firestore listeners, remove them here)
-
-        // Navigate back to the SignInActivity
-        Intent signInIntent = new Intent(ProfileActivity.this, SignInActivity.class);
-        signInIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(signInIntent);
-        finish(); // Close the ProfileActivity to prevent users from navigating back to it
     }
 
     private void selectImage() {
@@ -232,53 +220,41 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void updateUserProfileImage(String imageUrl) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            DocumentReference docRef = mFirestore.collection("users").document(user.getUid());
-
-            // Use set with merge to ensure other fields are not overwritten
-            docRef.set(Collections.singletonMap("image", imageUrl), SetOptions.merge())
+            DocumentReference userRef = mFirestore.collection("users").document(user.getUid());
+            userRef.update("image", imageUrl)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(ProfileActivity.this, "Profile image updated.", Toast.LENGTH_SHORT).show();
-
-                        // Load the updated profile image using Glide
+                        Toast.makeText(ProfileActivity.this, "Profile image updated", Toast.LENGTH_SHORT).show();
                         Glide.with(this).load(imageUrl).into(profileImageView);
-
-                        // Reload the full profile information to ensure everything is updated
-                        loadUserProfile(user.getUid());
                     })
                     .addOnFailureListener(e -> {
-                        Toast.makeText(ProfileActivity.this, "Failed to update profile image", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ProfileActivity.this, "Error updating profile image", Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    private void updateLastSeen() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            DocumentReference userRef = mFirestore.collection("users").document(user.getUid());
+            userRef.update("last_seen", FieldValue.serverTimestamp())
+                    .addOnSuccessListener(aVoid -> {
+                        // Last seen updated
+                    })
+                    .addOnFailureListener(e -> {
+                        // Handle error
                     });
         }
     }
 
     private void incrementProfileViews() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            String userId = getIntent().getStringExtra("userId");
-
-            if (userId != null) {
-                DocumentReference docRef = mFirestore.collection("users").document(userId);
-                docRef.update("profile_views", FieldValue.increment(1))
-                        .addOnSuccessListener(aVoid -> {
-                            // Successfully incremented profile views
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(ProfileActivity.this, "Failed to increment profile views", Toast.LENGTH_SHORT).show();
-                        });
-            }
-        }
-    }
-
-    private void updateLastSeen() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            DocumentReference docRef = mFirestore.collection("users").document(user.getUid());
-            String lastSeen = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
-            docRef.update("last_seen", lastSeen)
+        String userId = getIntent().getStringExtra("userId");
+        if (userId != null) {
+            DocumentReference userRef = mFirestore.collection("users").document(userId);
+            userRef.update("profile_views", FieldValue.increment(1))
                     .addOnFailureListener(e -> {
-                        Toast.makeText(ProfileActivity.this, "Failed to update last seen", Toast.LENGTH_SHORT).show();
+                        // Handle error
                     });
         }
     }
